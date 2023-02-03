@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 
 const QSTASH_URL = `https://qstash.upstash.io/v1/publish/`;
-const OPENAI_URL = "https://api.openai.com/v1/completions";
+const OPENAI_IMAGE_GENERATION_URL = "https://api.openai.com/v1/images/generations";
 
 interface QstashSubmissionResponse {
     messageId: string
@@ -21,9 +21,9 @@ interface OpenAIResponseError {
 }
 
 interface OpenAIResponseSuccess {
-    choices?: [
+    data: [
         {
-            text: string
+            url: string
         }?
     ]
 }
@@ -50,7 +50,7 @@ export class ImageService {
         }
         debugger
         const upstashCallback = this.serverUrl + '/image-callback'
-        const response = await fetch(`${QSTASH_URL + OPENAI_URL}`, {
+        const response = await fetch(`${QSTASH_URL + OPENAI_IMAGE_GENERATION_URL}`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${this.qstashToken}`,
@@ -59,7 +59,6 @@ export class ImageService {
                 "Upstash-Callback": upstashCallback,
             },
             body: JSON.stringify({
-                model: 'text-davinci-003',
                 prompt
             }),
         });
@@ -68,7 +67,7 @@ export class ImageService {
         return json?.messageId
     }
 
-    public getImage(qstashResponse: QstashResponse) {
+    public getImageUrl(qstashResponse: QstashResponse) {
         const body = qstashResponse.body
         const unencoded = Buffer.from(body, 'base64').toString()
         console.log('unencoded body', unencoded)
@@ -78,7 +77,7 @@ export class ImageService {
             throw new Error(errorResponse.error.message)
         } else {
             const successResponse = parsed as OpenAIResponseSuccess
-            return successResponse.choices?.[0]?.text
+            return successResponse.data[0]?.url
         }
     }
 }
