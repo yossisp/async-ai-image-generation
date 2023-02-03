@@ -23,8 +23,9 @@ interface OpenAIResponseError {
 interface OpenAIResponseSuccess {
     data: [
         {
-            url: string
-        }?
+            // can be undefined: https://github.com/openai/openai-node/blob/master/api.ts#L1432
+            url?: string
+        }
     ]
 }
 
@@ -44,18 +45,18 @@ export class ImageService {
         this.serverUrl = serverUrl
     }
 
-    public async submit(prompt?: string): Promise<string | undefined> {
-        if (!prompt) {
-            throw new Error("received empty prompt")
-        }
+    public async submit(prompt: string): Promise<string | undefined> {
         debugger
         const upstashCallback = this.serverUrl + '/image-callback'
+ 
         const response = await fetch(`${QSTASH_URL + OPENAI_IMAGE_GENERATION_URL}`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${this.qstashToken}`,
                 "upstash-forward-Authorization": `Bearer ${this.openApiKey}`,
                 "Content-Type": "application/json",
+
+                // Qstash will return OpenAI response to /image-callback endpoint
                 "Upstash-Callback": upstashCallback,
             },
             body: JSON.stringify({
@@ -77,7 +78,10 @@ export class ImageService {
             throw new Error(errorResponse.error.message)
         } else {
             const successResponse = parsed as OpenAIResponseSuccess
-            return successResponse.data[0]?.url
+            return {
+                url: successResponse.data[0].url,
+                sourceMessageId: qstashResponse.sourceMessageId
+            }
         }
     }
 }
