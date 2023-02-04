@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "clean": "rm -rf dist",
+    "compile": "npm run clean && tsc",
+    "start": "node dist/app.js"
   },
   "author": "",
   "license": "ISC",
