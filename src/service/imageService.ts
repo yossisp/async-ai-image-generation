@@ -46,7 +46,6 @@ export class ImageService {
     }
 
     public async submit(prompt: string): Promise<string | undefined> {
-        debugger
         const upstashCallback = this.serverUrl + '/image-callback'
  
         const response = await fetch(`${QSTASH_URL + OPENAI_IMAGE_GENERATION_URL}`, {
@@ -63,7 +62,6 @@ export class ImageService {
                 prompt
             }),
         });
-        console.log("made request to qstash")
         const json = await response.json() as any as QstashSubmissionResponse
         return json?.messageId
     }
@@ -71,7 +69,6 @@ export class ImageService {
     public getImageUrl(qstashResponse: QstashResponse) {
         const body = qstashResponse.body
         const unencoded = Buffer.from(body, 'base64').toString()
-        console.log('unencoded body', unencoded)
         const parsed = JSON.parse(unencoded) as OpenAIResponseError | OpenAIResponseSuccess
         if ('error' in parsed) {
             const errorResponse = parsed as OpenAIResponseError

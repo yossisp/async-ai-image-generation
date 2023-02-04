@@ -31,7 +31,6 @@ const CACHE = new Map<string, string>()
 
 // Accept request to generate image
 app.get('/generate-image', async (req: Request, res: Response) => {
-    debugger
     const imageGenerationService = new ImageService(
         QSTASH_TOKEN,
         OPENAI_API_KEY,
@@ -48,13 +47,12 @@ app.get('/generate-image', async (req: Request, res: Response) => {
         return
     }
     const submissionId = await imageGenerationService.submit(query.prompt)
-    console.log('submission', submissionId)
+    console.info('submission id', submissionId)
     res.send(`Generating image. Your submission id: ${submissionId}`)
 })
 
 // Qstash will notify at this endpoint with the response from OpenAI
 app.post('/image-callback', async (req: Request, res: Response) => {
-    debugger
     const imageService = new ImageService(
         QSTASH_TOKEN,
         OPENAI_API_KEY,
@@ -74,7 +72,6 @@ app.post('/image-callback', async (req: Request, res: Response) => {
 
 // Allow users to poll for generated image
 app.get('/get-image-is-ready', (req: Request, res: Response) => {
-    debugger
     const query: GetImageIsReadyRequestQuery = req.query
 
     // Validate request params
@@ -110,5 +107,5 @@ app.get('/get-image-is-ready', (req: Request, res: Response) => {
 })
 
 app.listen(PORT, function () {
-    console.log(`Server running on port ${PORT}.`)
+    console.info(`Server running on port ${PORT}.`)
 })
