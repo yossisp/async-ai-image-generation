@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv'
 dotenv.config()
 
-import express, { Application, Request, Response } from 'express'
+import express, { Application, Request, Response, NextFunction } from 'express'
 import { ImageService } from './service/imageService'
 
 interface GenerateImageRequestQuery {
@@ -30,44 +30,54 @@ const IMAGE_STATUS = {
 const CACHE = new Map<string, string>()
 
 // Accept request to generate image
-app.get('/generate-image', async (req: Request, res: Response) => {
-    const imageGenerationService = new ImageService(
-        QSTASH_TOKEN,
-        OPENAI_API_KEY,
-        SERVER_URL
-    )
-    
-    const query: GenerateImageRequestQuery = req.query
-    if (!query.prompt) {
-        res.sendStatus(400).json({
-            error: {
-                message: 'prompt parameter is missing'
-            }
-        })
-        return
+app.get('/generate-image', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const imageGenerationService = new ImageService(
+            QSTASH_TOKEN,
+            OPENAI_API_KEY,
+            SERVER_URL
+        )
+        
+        const query: GenerateImageRequestQuery = req.query
+        if (!query.prompt) {
+            res.sendStatus(400).json({
+                error: {
+                    message: 'prompt parameter is missing'
+                }
+            })
+            return
+        }
+        const submissionId = await imageGenerationService.submit(query.prompt)
+        console.info('submission id', submissionId)
+        res.send(`Generating image. Your submission id: ${submissionId}`)
+    } catch (error) {
+        next(error)
     }
-    const submissionId = await imageGenerationService.submit(query.prompt)
-    console.info('submission id', submissionId)
-    res.send(`Generating image. Your submission id: ${submissionId}`)
+    
 })
 
 // Qstash will notify at this endpoint with the response from OpenAI
-app.post('/image-callback', async (req: Request, res: Response) => {
-    const imageService = new ImageService(
-        QSTASH_TOKEN,
-        OPENAI_API_KEY,
-        SERVER_URL
-    )
+app.post('/image-callback', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const imageService = new ImageService(
+            QSTASH_TOKEN,
+            OPENAI_API_KEY,
+            SERVER_URL
+        )
+        
+        const imageData = imageService.getImageUrl(req.body)
     
-    const imageData = imageService.getImageUrl(req.body)
-
-    // Save data in cache to retrieve when users ask for their image
-    if (imageData.url) {
-        CACHE.set(imageData.sourceMessageId, imageData.url);
-    } else {
-        CACHE.set(imageData.sourceMessageId, UNABLE_TO_GENERATE_IMAGE);
+        // Save data in cache to retrieve when users ask for their image
+        if (imageData.url) {
+            CACHE.set(imageData.sourceMessageId, imageData.url);
+        } else {
+            CACHE.set(imageData.sourceMessageId, UNABLE_TO_GENERATE_IMAGE);
+        }
+        res.sendStatus(200)
+    } catch (error) {
+        next(error)
     }
-    res.sendStatus(200)
+    
 })
 
 // Allow users to poll for generated image

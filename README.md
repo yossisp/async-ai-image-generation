@@ -6,7 +6,7 @@
     3. `SERVER_URL` - the URL of the server which Qstash will make a request to, the server being the app. The app will be running on `localhost:3000` and a service like [ngrok](https://ngrok.com) can be used to expose the app to the world. If ngrok is used simply run `ngrok http 3000` in Terminal, copy the https URL and set `SERVER_URL` to it.
 
 ### Run
-After completing the prerequisites section run `npm run dev`. This will start the application.
+After completing the prerequisites section run `npm run dev` to develop with hot-reloading or `npm start`. This will start the application.
 
 Make a `GET` request to the endpoint `/generate-image` with a prompt to generate an image:
 ```bash

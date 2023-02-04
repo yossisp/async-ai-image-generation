@@ -7,7 +7,7 @@
     "dev": "nodemon src/app.ts",
     "clean": "rm -rf dist",
     "compile": "npm run clean && tsc",
-    "start": "node dist/app.js"
+    "start": "npm run compile && node dist/app.js"
   },
   "author": "",
   "license": "ISC",
