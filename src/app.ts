@@ -51,6 +51,8 @@ app.get('/generate-image', async (req: Request, res: Response, next: NextFunctio
         console.info('submission id', submissionId)
         res.send(`Generating image. Your submission id: ${submissionId}`)
     } catch (error) {
+        // must pass error to next function in async routes in express
+        // https://expressjs.com/en/guide/error-handling.html
         next(error)
     }
     
@@ -75,6 +77,8 @@ app.post('/image-callback', async (req: Request, res: Response, next: NextFuncti
         }
         res.sendStatus(200)
     } catch (error) {
+        // must pass error to next function in async routes in express
+        // https://expressjs.com/en/guide/error-handling.html
         next(error)
     }
     
